@@ -1,5 +1,11 @@
 Revision history for Perl extension HTML::Template::Extension.
 
+0.12 (2002-03-25)
+=================
+- Not in according with documentation, if CSTART plugin is loaded and in the
+template there is nothing <TMPL_CSTART> tag, an empty string is returned.
+Now is returned the whole template file.
+
 0.11 (2002-03-24)
 =================
 - First release of HTML::Template::Extension

@@ -1,6 +1,6 @@
 package HTML::Template::Extension::CSTART;
 
-$VERSION 			= "0.11";
+$VERSION 			= "0.12";
 sub Version 		{ $VERSION; }
 
 use Carp;
@@ -80,27 +80,30 @@ sub _cstart {
         # String position cursor increment
         my $inc   = 15;
         my $ret;
-        while ($$template       =~ m{$re_sh}g) {
-                my $prematch    = $` . $&;
-                my $lpm         = length($prematch);
-                my $cur         = $inc * 2 > $lpm ? $lpm : $inc * 2;
-                $_              = substr($prematch,-$cur);
-                my $amp; my $one;
-                until ( m{$re_var}smx                           and
-                                $amp = $& and $one=$2           or
-                                (
-                                        $cur>=$lpm+$inc         and
-                                       	die "HTML::Template : </TMPL_CSTART> " .
-                                       		"without <TMPL_CSTART>"
-                                )
-                        ) {
-                                $_ = substr($prematch,-($cur += $inc));
-                }
-                $amp            = quotemeta($amp);
-                #$$template      =~ s{$amp}{$one}sm;
-                $ret .= $one;
-        }
-        $$template = $ret;
+        # apply only if there is at least one <TMPL_CSTART>
+        if ($$template			=~ m{$re_sh}) {
+	        while ($$template       =~ m{$re_sh}g) {
+	                my $prematch    = $` . $&;
+	                my $lpm         = length($prematch);
+	                my $cur         = $inc * 2 > $lpm ? $lpm : $inc * 2;
+	                $_              = substr($prematch,-$cur);
+	                my $amp; my $one;
+	                until ( m{$re_var}smx                           and
+	                                $amp = $& and $one=$2           or
+	                                (
+	                                        $cur>=$lpm+$inc         and
+	                                       	die "HTML::Template : </TMPL_CSTART> " .
+	                                       		"without <TMPL_CSTART>"
+	                                )
+	                        ) {
+	                                $_ = substr($prematch,-($cur += $inc));
+	                }
+	                $amp            = quotemeta($amp);
+	                #$$template      =~ s{$amp}{$one}sm;
+	                $ret .= $one;
+	        }
+	        $$template = $ret;
+	     }
 }
 
 sub _ecp_cstart {
