@@ -1,6 +1,6 @@
 package HTML::Template::Extension::CSTART;
 
-$VERSION 			= "0.22";
+$VERSION 			= "0.23";
 sub Version 		{ $VERSION; }
 
 use Carp;
@@ -49,7 +49,7 @@ sub _get_filter {
 # distribuzione standard del modulo
 sub _cstart {
         my $template = shift;
-		my $ret;
+		my $ret = '';
 		while ($$template =~m{$re_var}xsg) {
 				$ret .= $1;
 		}

@@ -1,6 +1,6 @@
 package HTML::Template::Extension;
 
-$VERSION 			= "0.22";
+$VERSION 			= "0.23";
 sub Version 		{ $VERSION; }
 
 use HTML::Template;
@@ -108,7 +108,13 @@ sub html {
 	my $self 		 = shift;
 	my %args 		 = (defined $_[0]) ? %{$_[0]} : ();
 	$self->{filename}= $_[1] if (defined $_[1]);
-	if (defined $self->{filename} && $self->{filename} ne $self->{options}->{filename} || $self->{_auto_parse}) {
+	if ( defined $self->{filename} 
+			&& (
+				!defined $self->{options}->{filename}
+					||	$self->{filename} ne $self->{options}->{filename} 
+				)
+			|| $self->{_auto_parse}
+		) {
 		$self->reloadFile();
 	}
 	return $self->output('as' => \%args);
@@ -180,7 +186,11 @@ sub filehandle {
 sub reloadFile {
 	my $self = shift;
 	$self->{_auto_parse} = 0;
-	if (defined $self->{filename} && $self->{filename} ne $self->{options}->{filename}) {
+	if ( defined $self->{filename} 
+			&& ( !defined $self->{options}->{filename}
+					|| $self->{filename} ne $self->{options}->{filename}
+				)
+		) {
 		$self->{options}->{filename} = $self->{filename};
 		my $filepath = $self->_find_file($self->{filename});  
 		$self->{options}->{filepath} = $self->{filename};
