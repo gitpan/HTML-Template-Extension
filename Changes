@@ -1,6 +1,11 @@
 Revision history for Perl extension HTML::Template::Extension.
 
 
+0.17 (2003-01-25)
+=================
+- Test file have an unnecessary required modules for DBI e Data::Dumper.
+  Removed this required modules from test file
+
 0.16 (2003-01-24)
 =================
 - Add IF_TERN plugins. Read documentation for more info.

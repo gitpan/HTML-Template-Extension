@@ -9,10 +9,8 @@
 BEGIN { $| = 1; print "1..11\n"; }
 END {print "not ok " . ++$testid . "\n" unless $loaded;}
 
-use DBI;
 use HTML::Template::Extension;
 use HTML::Template::Extension::IF_TERN;
-use Data::Dumper;
 
 
 # Create test obj with support for doing nothing but standart:=)
