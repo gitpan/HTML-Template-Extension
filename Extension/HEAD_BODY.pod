@@ -10,6 +10,17 @@ HTML::Template::Extension::HEAD_BODY - Plugins for html file
     |
      <HTML>
         <HEAD>
+            <meta http-equiv="Content-Language" content="it">
+            <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+            <title>Test Page</title>
+            <STYLE>
+            body
+                    {
+                            font-family: Verdana, Arial, Helvetica;
+                            background-color: rgb(0,0,0);
+                            color: rgb(102,255,51);
+                    }
+            </STYLE>
             <SCRIPT Language="Javascript">
                 function do_nothing {
                     return void;
@@ -60,18 +71,28 @@ HTML::Template::Extension::HEAD_BODY - Plugins for html file
 
  # OUTPUT:
  #
- #   <HTML>
- #      <HEAD>
- #              <SCRIPT Language="Javascript">
- #                      function do_nothing {
- #                              return void;
- #                      }
- #              </SCRIPT>
- #      </HEAD>
- #      <BODY backgroud="#FFFFFF">
+ #       <HTML>
+ #       <HEAD>
+ #               <meta http-equiv="Content-Language" content="it">
+ #               <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+ #               <title>Test Page</title>
+ #               <STYLE>
+ #               body
+ #                       {
+ #                               font-family: Verdana, Arial, Helvetica;
+ #                               background-color: rgb(0,0,0);
+ #                               color: rgb(102,255,51);
+ #                       }
+ #               </STYLE>
+ #           <SCRIPT Language="Javascript">
+ #               function do_nothing {
+ #                   return void;
+ #               }
+ #           </SCRIPT>
+ #       </HEAD>
+ #       <BODY backgroud="#FFFFFF">
 
- print $comp->js_header;
-
+ print $comp->header_js;
 
  # OUTPUT:
  #
@@ -80,6 +101,78 @@ HTML::Template::Extension::HEAD_BODY - Plugins for html file
  #                              return void;
  #                      }
  #              </SCRIPT>
+
+ print $comp->header_css;
+
+ # OUTPUT:
+ #
+ #               <STYLE>
+ #               body
+ #                       {
+ #                               font-family: Verdana, Arial, Helvetica;
+ #                               background-color: rgb(0,0,0);
+ #                               color: rgb(102,255,51);
+ #                       }
+ #               </STYLE>
+
+ print $comp->body_attributes;
+
+ # OUTPUT:
+ #
+ # backgroud="#FFFFFF"
+
+ print Data::Dumper::Dumper($comp->header_tokens);
+
+ # OUTPUT:
+ #
+ #      $VAR1 = {
+ #         'style' => [
+ #                      [
+ #                        '<STYLE>',
+ #                        '
+ #               body
+ #                       {
+ #                               font-family: Verdana, Arial, Helvetica;
+ #                               background-color: rgb(0,0,0);
+ #                               color: rgb(102,255,51);
+ #                       }
+ #               ',
+ #                        '</STYLE>'
+ #                      ]
+ #                    ],
+ #         'meta' => [
+ #                     [
+ #                       '<meta http-equiv="Content-Language" content="it">',
+ #                       '
+ #               ',
+ #                       undef
+ #                     ],
+ #                     [
+ #                       '<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">',
+ #                       '
+ #               ',
+ #                       undef
+ #                     ]
+ #                   ],
+ #         'title' => [
+ #                      [
+ #                        '<title>',
+ #                        'Test Page',
+ #                        '</title>'
+ #                      ]
+ #                    ],
+ #         'script' => [
+ #                       [
+ #                         '<SCRIPT Language="Javascript">',
+ #                         '
+ #               function do_nothing {
+ #                   return void;
+ #               }
+ #           ',
+ #                         '</SCRIPT>'
+ #                       ]
+ #                     ]
+ #       };
 
 =head1 DESCRIPTION
 

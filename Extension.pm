@@ -1,10 +1,11 @@
 package HTML::Template::Extension;
 
-$VERSION 			= "0.17";
+$VERSION 			= "0.19";
 sub Version 		{ $VERSION; }
 
 use HTML::Template;
-push @ISA,"HTML::Template";
+@HTML::Template::Extension::ISA = qw(HTML::Template);
+
 
 
 use Carp;
@@ -239,15 +240,16 @@ sub _loadDynamicModule {
 	{
 		no strict "vars";
 		no strict "refs";
+		@HTML::Template::Extension::ISA = qw(HTML::Template);	
 		foreach (@{$self->{plugins}}) {
-	    	my $module = "HTML::Template::Extension::$_";
-	    	push @ISA,$module;
-	    	my $module_string = $module;
-	    	$module_string =~s/::/\//g;
-	    	require $module_string . ".pm";
-	    	#import $module_string . ".pm";
-	    	my $mc = $module;
-	    	&{$mc . "::new"}($mc,$self);  
+	    		my $module = "HTML::Template::Extension::$_";
+	    		push @HTML::Template::Extension::ISA,$module;
+	    		my $module_string = $module;
+	    		$module_string =~s/::/\//g;
+	    		require $module_string . ".pm";
+	    		#import $module_string . ".pm";
+	    		my $mc = $module;
+	    		&{$mc . "::new"}($mc,$self);  
 	    }
 	}
 }

@@ -6,7 +6,7 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..11\n"; }
+BEGIN { $| = 1; print "1..13\n"; }
 END {print "not ok " . ++$testid . "\n" unless $loaded;}
 
 use HTML::Template::Extension;
@@ -101,11 +101,34 @@ if (m/It works/ && !m/placeholder/ && !m/\<HTML\>/ && $comp->header=~m/\<HTML\>/
 $comp->autoDeleteHeader(1);
 $_ = $comp->html({'test' => "It works!!!"},'templates/html_js.tmpl');
 print;
-$_ = $comp->js_header;
+$_ = $comp->header_js;
 print;
 
 if (m/doNothing/) {
 	print "\nok " . ++$testid . "\n";
+} else {
+    exit;
+}
+
+# check header_css
+$comp->autoDeleteHeader(1);
+$_ = $comp->html({'test' => "It works!!!"},'templates/html_js.tmpl');
+$_ = $comp->header_css;
+print;
+if (m/\.body/) {
+        print "\nok " . ++$testid . "\n";
+} else {
+    exit;
+}
+#check header_tokens
+$comp->autoDeleteHeader(1);
+$_ = $comp->html({'test' => "It works!!!"},'templates/html_js.tmpl');
+$_ = $comp->header_tokens->{meta};
+print Data::Dumper::Dumper($_);
+$_ = $_->[1]->[0];
+print ;
+if (m/windows\-1252/) {
+        print "\nok " . ++$testid . "\n";
 } else {
     exit;
 }
