@@ -6,11 +6,12 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..10\n"; }
+BEGIN { $| = 1; print "1..11\n"; }
 END {print "not ok " . ++$testid . "\n" unless $loaded;}
 
 use DBI;
 use HTML::Template::Extension;
+use HTML::Template::Extension::IF_TERN;
 use Data::Dumper;
 
 
@@ -126,6 +127,18 @@ if (!m/comment/) {
 # check support for TMPL_CSTART tag
 $comp->plugin_add("CSTART");
 $_ = $comp->html({'test' => "It works!!!"},'templates/html_cstart.tmpl');
+print;
+
+if (!m/BAD/) {
+	print "\nok " . ++$testid . "\n";
+} else {
+    exit;
+}
+
+# check support for IF_TERN plug-in
+$comp->plugins_clear;
+$comp->plugin_add("IF_TERN");
+$_ = $comp->html({'test' => 1},'templates/if_tern.tmpl');
 print;
 
 if (!m/BAD/) {

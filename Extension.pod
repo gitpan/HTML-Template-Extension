@@ -114,6 +114,28 @@ HTML::Template::Extension - Module support extension for HTML::Template
  #   ========================
  #   If you see ONLY this line then CSTART plugin is active.
 
+ print qq
+    |
+     IF_TERN plugin activation
+     =========================
+    |;
+
+ my $text = qq
+    |
+     If all is ok you can read this here --> %test?It works!!!:It's BAD%
+    |;
+
+ $comp->plugin_add("IF_TERN");
+ $comp->scalarref(\$text);
+ $comp->param('test' => 1);
+ print $comp->output . "\n";
+
+ #   OUTPUT:
+ #
+ #   IF_TERN plugin activation
+ #   =========================
+ #   If all is ok you can read this here --> It works!!!
+
 
 =head1 DESCRIPTION
 
@@ -191,6 +213,10 @@ method
 =item * HTML::Template::Extension::HEAD_BODY
 
 that don't add tag syntax but some method for easily working with html files
+
+=item * HTML::Template::Extension::IF_TERN
+
+that add syntax for ternary if operator %bool_var?if_is_true:if_is_false%
 
 =item * HTML::Template::Extension::DO_NOTHING
 
@@ -275,5 +301,6 @@ Bruni Emiliano, <info@ebruni.it>
  HTML::Template::Extension::CSTART
  HTML::Template::Extension::DOC
  HTML::Template::Extension::HEAD_BODY
+ HTML::Template::Extension::IF_TERN
 
 =cut

@@ -1,6 +1,6 @@
 package HTML::Template::Extension;
 
-$VERSION 			= "0.14";
+$VERSION 			= "0.16";
 sub Version 		{ $VERSION; }
 
 use HTML::Template;
@@ -91,6 +91,8 @@ sub output {
 		$self->reloadFile();
 	}
 	if (exists $args{as}) {
+		# delete old params settings
+		$self->SUPER::clear_params();
 		my %as = %{$args{as}};
 		foreach (keys %as) {
 			$self->SUPER::param($_ => $as{$_});
