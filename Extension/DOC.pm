@@ -1,6 +1,6 @@
 package HTML::Template::Extension::DOC;
 
-$VERSION 			= "0.11";
+$VERSION 			= "0.21";
 sub Version 		{ $VERSION; }
 
 use Carp;
@@ -14,6 +14,13 @@ my %fields 	=
 			     );
      
 my @fields_req	= qw//;    
+
+my $re_var = q{
+  <\s*                           	# first <
+  [Tt][Mm][Pp][Ll]_[Dd][Oo][Cc]   	# interesting TMPL_DOC tag only
+  \s*>                       		# this is H:T standard tag
+  ((?:.*?)                        	# delete alla after here
+<\s*\/[Tt][Mm][Pp][Ll]_[Dd][Oo][Cc]\s*>)};
 
 sub new
 {   
@@ -66,34 +73,35 @@ sub _get_filter {
 sub _tmpl_doc {
         my $template = shift;
         # handle the </TMPL_DOC> tag
-        my $re_sh = q{<\s*\/[Tt][Mm][Pp][Ll]_[Dd][Oo][Cc]\s*>};
-        my $re_var = q{
-          <\s*                           	# first <
-          [Tt][Mm][Pp][Ll]_[Dd][Oo][Cc]   	# interesting TMPL_DOC tag only
-          \s*>                       		# this is H:T standard tag
-          ((?:.*?)                        	# delete alla after here
-        } . qq{$re_sh)};
-        # String position cursor increment
-        my $inc   = 10;
-        while ($$template       =~ m{$re_sh}g) {
-                my $prematch    = $` . $&;
-                my $lpm         = length($prematch);
-                my $cur         = $inc * 2 > $lpm ? $lpm : $inc * 2;
-                $_              = substr($prematch,-$cur);
-                my $amp; my $one;
-                until ( m{$re_var}smx                           and
-                                $amp = $& and $one=$1           or
-                                (
-                                        $cur>=$lpm+$inc         and
-                                       	die "HTML::Template : </TMPL_DOC> " .
-                                       		"without <TMPL_DOC>"
-                                )
-                        ) {
-                                $_ = substr($prematch,-($cur += $inc));
-                }
-                $amp            = quotemeta($amp);
-                $$template      =~ s{$amp\n*}{}sm;
-        }
+###        my $re_sh = q{<\s*\/[Tt][Mm][Pp][Ll]_[Dd][Oo][Cc]\s*>};
+###        my $re_var = q{
+###          <\s*                           	# first <
+###          [Tt][Mm][Pp][Ll]_[Dd][Oo][Cc]   	# interesting TMPL_DOC tag only
+###          \s*>                       		# this is H:T standard tag
+###          ((?:.*?)                        	# delete alla after here
+###        } . qq{$re_sh)};
+###        # String position cursor increment
+###        my $inc   = 10;
+###        while ($$template       =~ m{$re_sh}g) {
+###                my $prematch    = $` . $&;
+###                my $lpm         = length($prematch);
+###                my $cur         = $inc * 2 > $lpm ? $lpm : $inc * 2;
+###                $_              = substr($prematch,-$cur);
+###                my $amp; my $one;
+###                until ( m{$re_var}smx                           and
+###                                $amp = $& and $one=$1           or
+###                                (
+###                                        $cur>=$lpm+$inc         and
+###                                       	die "HTML::Template : </TMPL_DOC> " .
+###                                       		"without <TMPL_DOC>"
+###                                )
+###                        ) {
+###                                $_ = substr($prematch,-($cur += $inc));
+###                }
+###                $amp            = quotemeta($amp);
+###                $$template      =~ s{$amp\n*}{}sm;
+###        }
+	$$template =~s{$re_var}{}xsg
 }
 
 

@@ -1,6 +1,6 @@
 package HTML::Template::Extension::SLASH_VAR;
 
-$VERSION 			= "0.08";
+$VERSION 			= "0.21";
 sub Version 		{ $VERSION; }
 
 use Carp;
@@ -15,6 +15,16 @@ my %fields 	=
 			     );
      
 my @fields_req	= qw//;    
+
+my $re_var = q{
+  ((<\s*                           # first <
+  [Tt][Mm][Pp][Ll]_[Vv][Aa][Rr]   # interesting TMPL_VAR tag only
+  (?:.*?)>)                       # this is H:T standard tag
+  ((?:.*?)                        # delete alla after here
+  <\s*\/                          # if there is the </TMPL_VAR> tag
+  [Tt][Mm][Pp][Ll]_[Vv][Aa][Rr]
+  \s*>))
+};
 
 sub new
 {   
@@ -73,38 +83,37 @@ sub _get_filter {
 # distribuzione standard del modulo
 sub _slash_var {
         my $template = shift;
-        my $re_var = q{
-          (<\s*                           # first <
-          [Tt][Mm][Pp][Ll]_[Vv][Aa][Rr]   # interesting TMPL_VAR tag only
-          (?:.*?)>)                       # this is H:T standard tag
-          ((?:.*?)                        # delete alla after here
-          <\s*\/                          # if there is the </TMPL_VAR> tag
-          [Tt][Mm][Pp][Ll]_[Vv][Aa][Rr]
-          \s*>)
-        };
         # handle the </TMPL_VAR> tag
-        my $re_sh = q{<\s*\/[Tt][Mm][Pp][Ll]_[Vv][Aa][Rr]\s*>};
-        # String position cursor increment
-        my $inc   = 15;
-        while ($$template       =~ m{$re_sh}g) {
-                my $prematch    = $` . $&;
-                my $lpm         = length($prematch);
-                my $cur         = $inc * 2 > $lpm ? $lpm : $inc * 2;
-                $_              = substr($prematch,-$cur);
-                my $amp; my $one;
-                until ( m{$re_var}smx                           and
-                                $amp = $& and $one=$1           or
-                                (
-                                        $cur>=$lpm+$inc         and
-                                       	die "HTML::Template : </TMPL_VAR> " .
-                                       		"without <TMPL_VAR>"
-                                )
-                        ) {
-                                $_ = substr($prematch,-($cur += $inc));
-                }
-                $amp            = quotemeta($amp);
-                $$template      =~ s{$amp}{$one}sm;
+###        my $re_sh = q{<\s*\/[Tt][Mm][Pp][Ll]_[Vv][Aa][Rr]\s*>};
+###        # String position cursor increment
+###        my $inc   = 15;
+###        while ($$template       =~ m{$re_sh}g) {
+###                my $prematch    = $` . $&;
+###                my $lpm         = length($prematch);
+###                my $cur         = $inc * 2 > $lpm ? $lpm : $inc * 2;
+###                $_              = substr($prematch,-$cur);
+###                my $amp; my $one;
+###                until ( m{$re_var}smx                           and
+###                                $amp = $& and $one=$1           or
+###                                (
+###                                        $cur>=$lpm+$inc         and
+###                                       	die "HTML::Template : </TMPL_VAR> " .
+###                                       		"without <TMPL_VAR>"
+###                                )
+###                        ) {
+###                                $_ = substr($prematch,-($cur += $inc));
+###                }
+###                $amp            = quotemeta($amp);
+###                $$template      =~ s{$amp}{$one}sm;
+###        }
+	####$$template =~s{$re_var}{$1}xsg;
+	while ($$template =~/(?=$re_var)/sgx) {
+        my $two = $2;
+        if ($3 !~/(?:$re_var)/sx) {
+                $$template =~s{\Q$1}{$two}s;
         }
+    }
+    return $$template;
 }
 
 sub _ecp_vanguard_syntax {

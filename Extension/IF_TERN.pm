@@ -1,6 +1,6 @@
 package HTML::Template::Extension::IF_TERN;
 
-$VERSION 			= "0.16";
+$VERSION 			= "0.21";
 sub Version 		{ $VERSION; }
 
 use Carp;
@@ -49,18 +49,28 @@ sub _get_filter {
 sub _if_tern {
 	my $template = shift;
 	my $re_var		= q{\%(\S+?)\?(.*?)(\:(.*?))?\%};
-	while ($$template =~ m{$re_var}gsm) {
-		my $replace;
-		$replace	= qq{<TMPL_IF NAME="$1">$2};
+	#while ($$template =~ m{$re_var}gsm) {
+	#	my $replace;
+	#	$replace	= qq{<TMPL_IF NAME="$1">$2};
+	#	if (defined $3) {
+	#		$replace	.= qq{<TMPL_ELSE>$4</TMPL_IF>};
+	#	} else {
+	#		$replace	.= q{</TMPL_IF>};
+	#	}
+	#my $source		= quotemeta($&);
+	#$$template 		=~ s{$source}{$replace}sm;
+	#}
+	$$template =~ s{$re_var}{
+		my $replace	= qq{<TMPL_IF NAME="$1">$2};
 		if (defined $3) {
 			$replace	.= qq{<TMPL_ELSE>$4</TMPL_IF>};
 		} else {
 			$replace	.= q{</TMPL_IF>};
 		}
-	my $source		= quotemeta($&);
-	$$template 		=~ s{$source}{$replace}sm;
-	}
+		$replace;
+	}gmse;
 	return $$template;
+		
 }
 
 1;

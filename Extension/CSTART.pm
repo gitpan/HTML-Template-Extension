@@ -1,6 +1,6 @@
 package HTML::Template::Extension::CSTART;
 
-$VERSION 			= "0.12";
+$VERSION 			= "0.21";
 sub Version 		{ $VERSION; }
 
 use Carp;
@@ -15,6 +15,13 @@ my %fields 	=
 			     );
      
 my @fields_req	= qw//;    
+
+my $re_var = q{
+          <\s*                           	
+          [Tt][Mm][Pp][Ll]_[Cc][Ss][Tt][Aa][Rr][Tt]   	
+          \s*>                       		
+          (.*?)                        	
+        <\s*\/[Tt][Mm][Pp][Ll]_[Cc][Ss][Tt][Aa][Rr][Tt]\s*>};
 
 sub new
 {   
@@ -70,40 +77,46 @@ sub _get_filter {
 # distribuzione standard del modulo
 sub _cstart {
         my $template = shift;
-        my $re_sh = q{<\s*\/[Tt][Mm][Pp][Ll]_[Cc][Ss][Tt][Aa][Rr][Tt]\s*>};
-        my $re_var = q{
-          <\s*                           	
-          [Tt][Mm][Pp][Ll]_[Cc][Ss][Tt][Aa][Rr][Tt]   	
-          \s*>                       		
-          ((.*?)                        	
-        } . qq{$re_sh)};
-        # String position cursor increment
-        my $inc   = 15;
-        my $ret;
-        # apply only if there is at least one <TMPL_CSTART>
-        if ($$template			=~ m{$re_sh}) {
-	        while ($$template       =~ m{$re_sh}g) {
-	                my $prematch    = $` . $&;
-	                my $lpm         = length($prematch);
-	                my $cur         = $inc * 2 > $lpm ? $lpm : $inc * 2;
-	                $_              = substr($prematch,-$cur);
-	                my $amp; my $one;
-	                until ( m{$re_var}smx                           and
-	                                $amp = $& and $one=$2           or
-	                                (
-	                                        $cur>=$lpm+$inc         and
-	                                       	die "HTML::Template : </TMPL_CSTART> " .
-	                                       		"without <TMPL_CSTART>"
-	                                )
-	                        ) {
-	                                $_ = substr($prematch,-($cur += $inc));
-	                }
-	                $amp            = quotemeta($amp);
-	                #$$template      =~ s{$amp}{$one}sm;
-	                $ret .= $one;
-	        }
-	        $$template = $ret;
-	     }
+###        my $re_sh = q{<\s*\/[Tt][Mm][Pp][Ll]_[Cc][Ss][Tt][Aa][Rr][Tt]\s*>};
+###        my $re_var = q{
+###          <\s*                           	
+###          [Tt][Mm][Pp][Ll]_[Cc][Ss][Tt][Aa][Rr][Tt]   	
+###          \s*>                       		
+###          (.*?)                        	
+###        } . qq{$re_sh};
+###        # String position cursor increment
+###        my $inc   = 15;
+###        my $ret;
+###        # apply only if there is at least one <TMPL_CSTART>
+###        if ($$template			=~ m{$re_sh}) {
+###	        while ($$template       =~ m{$re_sh}g) {
+###	                my $prematch    = $` . $&;
+###	                my $lpm         = length($prematch);
+###	                my $cur         = $inc * 2 > $lpm ? $lpm : $inc * 2;
+###	                $_              = substr($prematch,-$cur);
+###	                my $amp; my $one;
+###	                until ( m{$re_var}smx                           and
+###	                                $amp = $& and $one=$2           or
+###	                                (
+###	                                        $cur>=$lpm+$inc         and
+###	                                       	die "HTML::Template : </TMPL_CSTART> " .
+###	                                       		"without <TMPL_CSTART>"
+###	                                )
+###	                        ) {
+###	                                $_ = substr($prematch,-($cur += $inc));
+###	                }
+###	                $amp            = quotemeta($amp);
+###	                #$$template      =~ s{$amp}{$one}sm;
+###	                $ret .= $one;
+###	        }
+###	        $$template = $ret;
+###	     }
+
+		my $ret;
+		while ($$template =~m{$re_var}xsg) {
+				$ret .= $1;
+		}
+		$$template = $ret eq '' ? $$template : $ret;
 }
 
 sub _ecp_cstart {

@@ -1,5 +1,12 @@
 Revision history for Perl extension HTML::Template::Extension.
 
+0.21 (2003-07-13)
+=================
+- Modify SLASH_VAR, CSTART, DOC, HEAD_BODY filter to be more efficient.
+- IF_TERM now use a one-pass regex algorithm to apply filter (thanks ????
+  for patch).
+- Remove every reference to $& which slows perl down
+
 0.20 (2003-04-21)
 =================
 - Header method in HEAD_BODY.pm return unconsistent values if html 

@@ -1,6 +1,6 @@
 package HTML::Template::Extension;
 
-$VERSION 			= "0.20";
+$VERSION 			= "0.21";
 sub Version 		{ $VERSION; }
 
 use HTML::Template;
