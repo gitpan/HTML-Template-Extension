@@ -1,6 +1,6 @@
 package HTML::Template::Extension;
 
-$VERSION 			= "0.21";
+$VERSION 			= "0.22";
 sub Version 		{ $VERSION; }
 
 use HTML::Template;
@@ -220,15 +220,15 @@ sub reloadFile {
 sub reloadFilter {
 	my $self = shift;
 	undef $self->{filter} ;
+	no strict "refs";
 	# plugin priority filter
 	{
-		no strict "refs";
 		foreach (@{$self->{plugins}}) {
-	    	my $module_call = "HTML::Template::Extension::$_" . "::push_filter";
-	    	&$module_call($self); 
+			my $module = "HTML::Template::Extension::$_";
+        	&{"${module}::push_filter"}($self);
 	    }
     }
-    $self->push_filter;
+    #$self->push_filter;
 }
 
 sub push_filter {
@@ -240,16 +240,13 @@ sub _loadDynamicModule {
 	{
 		no strict "vars";
 		no strict "refs";
-		@HTML::Template::Extension::ISA = qw(HTML::Template);	
 		foreach (@{$self->{plugins}}) {
-	    		my $module = "HTML::Template::Extension::$_";
-	    		push @HTML::Template::Extension::ISA,$module;
+				my $module = "HTML::Template::Extension::$_";
 	    		my $module_string = $module;
 	    		$module_string =~s/::/\//g;
 	    		require $module_string . ".pm";
 	    		#import $module_string . ".pm";
-	    		my $mc = $module;
-	    		&{$mc . "::new"}($mc,$self);  
+				&{$module . "::init"}($self);
 	    }
 	}
 }
@@ -275,6 +272,25 @@ sub plugins_clear {
 	undef $s->{plugins};
 	return $s->{plugins};
 }
+
+sub DESTROY {
+}
+
+sub AUTOLOAD {
+	my $self = shift;
+	my @procs = split(/::/,$HTML::Template::Extension::AUTOLOAD);
+	return if (scalar(@procs)<3);
+	my $proc = $procs[-1];
+	my $value;
+	no strict "refs";
+	foreach (@{$self->{plugins}}) {
+		my $module = "HTML::Template::Extension::$_";
+		my $ret;
+		$ret=  eval { return &{"${module}::$proc"}($self,@_) };
+		if (!$@) { return  $ret };
+	};
+}
+
 
 
 

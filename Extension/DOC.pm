@@ -1,20 +1,15 @@
 package HTML::Template::Extension::DOC;
 
-$VERSION 			= "0.21";
+$VERSION 			= "0.22";
 sub Version 		{ $VERSION; }
 
 use Carp;
 use strict;
 
-my $classname;
-my $parentname;
-
-my %fields 	=
+my %fields_parent 	=
 			    (
 			     );
      
-my @fields_req	= qw//;    
-
 my $re_var = q{
   <\s*                           	# first <
   [Tt][Mm][Pp][Ll]_[Dd][Oo][Cc]   	# interesting TMPL_DOC tag only
@@ -22,41 +17,17 @@ my $re_var = q{
   ((?:.*?)                        	# delete alla after here
 <\s*\/[Tt][Mm][Pp][Ll]_[Dd][Oo][Cc]\s*>)};
 
-sub new
-{   
-	$classname = shift;
+sub init {
     my $self = shift;
-    $parentname = ref($self);
-    bless $self,$classname;
-    # aggiungo il filtro
-    $self->_init_local(@_);
-    return $self;
-}							
-
-sub _init_local {
-	my $self = shift;
-	my (%options) = @_;
-	# Assign default options
-	while (my ($key,$value) = each(%fields)) {
-		$self->{$key} = $self->{$key} || $value;
+    while (my ($key,$val) = each(%fields_parent)) {
+        $self->{$key} = $self->{$key} || $val;
     }
-    # Assign options
-    while (my ($key,$value) = each(%options)) {
-    	$self->{$key} = $value
-    }
-    # Check required params
-    foreach (@fields_req) {
-		croak "You must declare '$_' in " . ref($self) . "::new"
-				if (!defined $self->{$_});
-	}		
-	$self->push_filter;								
+	&push_filter($self);
 }
 
 sub push_filter {
-	my $self = shift;
-	bless $self,$classname;
-	push @{$self->{filter}},@{$self->_get_filter()};
-	bless $self,$parentname;
+    my $self = shift;
+    push @{$self->{filter}},@{_get_filter($self)};
 }
 
 sub _get_filter {
@@ -73,36 +44,9 @@ sub _get_filter {
 sub _tmpl_doc {
         my $template = shift;
         # handle the </TMPL_DOC> tag
-###        my $re_sh = q{<\s*\/[Tt][Mm][Pp][Ll]_[Dd][Oo][Cc]\s*>};
-###        my $re_var = q{
-###          <\s*                           	# first <
-###          [Tt][Mm][Pp][Ll]_[Dd][Oo][Cc]   	# interesting TMPL_DOC tag only
-###          \s*>                       		# this is H:T standard tag
-###          ((?:.*?)                        	# delete alla after here
-###        } . qq{$re_sh)};
-###        # String position cursor increment
-###        my $inc   = 10;
-###        while ($$template       =~ m{$re_sh}g) {
-###                my $prematch    = $` . $&;
-###                my $lpm         = length($prematch);
-###                my $cur         = $inc * 2 > $lpm ? $lpm : $inc * 2;
-###                $_              = substr($prematch,-$cur);
-###                my $amp; my $one;
-###                until ( m{$re_var}smx                           and
-###                                $amp = $& and $one=$1           or
-###                                (
-###                                        $cur>=$lpm+$inc         and
-###                                       	die "HTML::Template : </TMPL_DOC> " .
-###                                       		"without <TMPL_DOC>"
-###                                )
-###                        ) {
-###                                $_ = substr($prematch,-($cur += $inc));
-###                }
-###                $amp            = quotemeta($amp);
-###                $$template      =~ s{$amp\n*}{}sm;
-###        }
-	$$template =~s{$re_var}{}xsg
+		$$template =~s{$re_var}{}xsg
 }
+
 
 
 1;

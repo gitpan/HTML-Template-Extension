@@ -1,6 +1,6 @@
 package HTML::Template::Extension::HEAD_BODY;
 
-$VERSION 			= "0.21";
+$VERSION 			= "0.22";
 sub Version 		{ $VERSION; }
 
 use Carp;
@@ -8,52 +8,22 @@ use strict;
 
 use HTML::TokeParser;
 
-my $classname;
-my $parentname;
-
-my %fields 	=
+my %fields_parent 	=
 			    (
 			    	autoDeleteHeader => 0,
 			     );
      
-my @fields_req	= qw//;    
-
-sub new
-{   
-	$classname = shift;
+sub init {
     my $self = shift;
-    $parentname = ref($self);
-    bless $self,$classname;
-    # aggiungo il filtro
-    $self->_init_local(@_);
-    bless $self,$parentname;
-    return $self;
-}							
-
-sub _init_local {
-	my $self = shift;
-	my (%options) = @_;
-	# Assign default options
-	while (my ($key,$value) = each(%fields)) {
-		$self->{$key} = $self->{$key} || $value;
+    while (my ($key,$val) = each(%fields_parent)) {
+        $self->{$key} = $self->{$key} || $val;
     }
-    # Assign options
-    while (my ($key,$value) = each(%options)) {
-    	$self->{$key} = $value
-    }
-    # Check required params
-    foreach (@fields_req) {
-		croak "You must declare '$_' in " . ref($self) . "::new"
-				if (!defined $self->{$_});
-	}		
-	$self->push_filter;								
+	&push_filter($self);
 }
 
 sub push_filter {
 	my $self = shift;
-	bless $self,$classname;
-	push @{$self->{filter}},@{$self->_get_filter()};
-	bless $self,$parentname;	
+	push @{$self->{filter}},@{_get_filter($self)};
 }
 
 sub _get_filter {
@@ -65,11 +35,9 @@ sub _get_filter {
 					my $header;
 					###if ($$tmpl =~s{^.+?<body([^>'"]*|".*?"|'.*?')+>}{}msi) {
 					if ($$tmpl =~s{(^.+?<body(?:[^>'"]*|".*?"|'.*?')+>)}{}msi) {
-						bless $self,$classname; 
 						###$self->{header} = $&;
 						$self->{header} = $1;
-						$self->tokenizer_header;
-						bless $self,$parentname;
+						&tokenizer_header($self);
 					} else {
 						# header doesn't exist
 						undef $self->{header};
@@ -83,17 +51,13 @@ sub _get_filter {
 
 sub autoDeleteHeader { 
 	my $s=shift;
-	bless $s,$classname; 
 	if (@_)  {	
 		$s->{autoDeleteHeader}=shift;
 		# reload local filter
-		bless $s,$parentname;
 		$s->reloadFilter;
 		$s->{_auto_parse} = 1;
-		bless $s,$classname;
 	};
 	my $ret = $s->{autoDeleteHeader};
-	bless $s,$parentname;
 	return 
 }
 
@@ -127,20 +91,17 @@ sub tokenizer_header {
 
 sub header {my $s = shift;return exists($s->{header}) ?  $s->{header} : ''};
 
-sub js_header { return shift->header_js; }
+sub js_header { return &header_js(shift); }
 
 sub header_js {
         # ritorna il codice javascript presente nell'header
         my $self        = shift;
-        #bless $self,$classname;
-        #$_              = $self->{header};
         my $ret;
         #my $re_init     = q|<\s*script(?:\s*\s+language\s*=\s*['"]?\s*javascript(?:.*?)['"]\s*.*?)?>|;
         #my $re_end  = q|<\s*\/script\s*>|;
         #while (s/$re_init.*?$re_end//msxi) {
         #        $ret .= $&;
         #}
-        #bless $self,$parentname;
 				my $js_token = $self->{tokens}->{script};
 				foreach (@{$js_token}) {
 					$ret .= $_->[0] . $_->[1] . $_->[2];
@@ -162,9 +123,9 @@ sub header_css {
 sub body_attributes {
 	# ritorna gli attributi interni al campo body
 	my $self 		= shift;
-	$_					= $self->{header};
+	my $h					= $self->{header};
 	my $re_init	= q|<\s*body(.*?)>|;
-	/$re_init/msxi;
+	$h=~/$re_init/msxi;
 	return $1;
 }
 
@@ -178,6 +139,4 @@ sub header_tokens {
 	return $self->{tokens};
 }
  
-
-
 1;

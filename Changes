@@ -1,5 +1,14 @@
 Revision history for Perl extension HTML::Template::Extension.
 
+0.22 (2003-07-26)
+=================
+- Removed a unnecessary required library in test script.
+- Plug-ins filosofy has been rearranged reducing code line number.
+- Now plugins aren't more true objects but are piece of code that 
+  will be loaded on demand. 
+- Use of AUTOLOAD mechanism to call methods in plugins.
+- Removed an useless modifier regular expression flag in IF_TERN.pm
+
 0.21 (2003-07-13)
 =================
 - Modify SLASH_VAR, CSTART, DOC, HEAD_BODY filter to be more efficient.

@@ -1,21 +1,16 @@
 package HTML::Template::Extension::CSTART;
 
-$VERSION 			= "0.21";
+$VERSION 			= "0.22";
 sub Version 		{ $VERSION; }
 
 use Carp;
 use strict;
 
-my $classname;
-my $parentname;
-
-my %fields 	=
+my %fields_parent 	=
 			    (
 			    	ecp_compatibility_mode => 0,
 			     );
      
-my @fields_req	= qw//;    
-
 my $re_var = q{
           <\s*                           	
           [Tt][Mm][Pp][Ll]_[Cc][Ss][Tt][Aa][Rr][Tt]   	
@@ -23,41 +18,18 @@ my $re_var = q{
           (.*?)                        	
         <\s*\/[Tt][Mm][Pp][Ll]_[Cc][Ss][Tt][Aa][Rr][Tt]\s*>};
 
-sub new
-{   
-	$classname = shift;
-    my $self = shift;
-    $parentname = ref($self);
-    bless $self,$classname;
-    # aggiungo il filtro
-    $self->_init_local(@_);
-    return $self;
-}							
 
-sub _init_local {
-	my $self = shift;
-	my (%options) = @_;
-	# Assign default options
-	while (my ($key,$value) = each(%fields)) {
-		$self->{$key} = $self->{$key} || $value;
+sub init {
+    my $self = shift;
+    while (my ($key,$val) = each(%fields_parent)) {
+        $self->{$key} = $self->{$key} || $val;
     }
-    # Assign options
-    while (my ($key,$value) = each(%options)) {
-    	$self->{$key} = $value
-    }
-    # Check required params
-    foreach (@fields_req) {
-		croak "You must declare '$_' in " . ref($self) . "::new"
-				if (!defined $self->{$_});
-	}		
-	$self->push_filter;								
+	&push_filter($self);
 }
 
 sub push_filter {
-	my $self = shift;
-	bless $self,$classname;
-	push @{$self->{filter}},@{$self->_get_filter()};
-	bless $self,$parentname;
+    my $self = shift;
+    push @{$self->{filter}},@{_get_filter($self)};
 }
 
 sub _get_filter {
@@ -77,41 +49,6 @@ sub _get_filter {
 # distribuzione standard del modulo
 sub _cstart {
         my $template = shift;
-###        my $re_sh = q{<\s*\/[Tt][Mm][Pp][Ll]_[Cc][Ss][Tt][Aa][Rr][Tt]\s*>};
-###        my $re_var = q{
-###          <\s*                           	
-###          [Tt][Mm][Pp][Ll]_[Cc][Ss][Tt][Aa][Rr][Tt]   	
-###          \s*>                       		
-###          (.*?)                        	
-###        } . qq{$re_sh};
-###        # String position cursor increment
-###        my $inc   = 15;
-###        my $ret;
-###        # apply only if there is at least one <TMPL_CSTART>
-###        if ($$template			=~ m{$re_sh}) {
-###	        while ($$template       =~ m{$re_sh}g) {
-###	                my $prematch    = $` . $&;
-###	                my $lpm         = length($prematch);
-###	                my $cur         = $inc * 2 > $lpm ? $lpm : $inc * 2;
-###	                $_              = substr($prematch,-$cur);
-###	                my $amp; my $one;
-###	                until ( m{$re_var}smx                           and
-###	                                $amp = $& and $one=$2           or
-###	                                (
-###	                                        $cur>=$lpm+$inc         and
-###	                                       	die "HTML::Template : </TMPL_CSTART> " .
-###	                                       		"without <TMPL_CSTART>"
-###	                                )
-###	                        ) {
-###	                                $_ = substr($prematch,-($cur += $inc));
-###	                }
-###	                $amp            = quotemeta($amp);
-###	                #$$template      =~ s{$amp}{$one}sm;
-###	                $ret .= $one;
-###	        }
-###	        $$template = $ret;
-###	     }
-
 		my $ret;
 		while ($$template =~m{$re_var}xsg) {
 				$ret .= $1;
@@ -130,6 +67,7 @@ sub _ecp_cstart {
     	$$template =~s|$end|</TMPL_CSTART>|g;
     }
 }
+
 
 
 1;

@@ -1,43 +1,27 @@
 package HTML::Template::Extension::IF_TERN;
 
-$VERSION 			= "0.21";
+$VERSION 			= "0.22";
 sub Version 		{ $VERSION; }
 
 use Carp;
 use strict;
 
-my $classname;
-my $parentname;
+my %fields_parent   =
+                (
+                 );
 
-
-sub new
-{   
-	$classname = shift;
+sub init {
     my $self = shift;
-    $parentname = ref($self);
-    bless $self,$classname;
-    # aggiungo il filtro
-    $self->_init_local(@_);
-    return $self;
-}							
-
-sub _init_local {
-	my $self = shift;
-	my (%options) = @_;
-    # Assign options
-    while (my ($key,$value) = each(%options)) {
-    	$self->{$key} = $value
+    while (my ($key,$val) = each(%fields_parent)) {
+        $self->{$key} = $self->{$key} || $val;
     }
-	$self->push_filter;								
+	&push_filter($self);
 }
 
 sub push_filter {
-	my $self = shift;
-	bless $self,$classname;
-	push @{$self->{filter}},@{$self->_get_filter()};
-	bless $self,$parentname;
+    my $self = shift;
+    push @{$self->{filter}},@{_get_filter($self)};
 }
-
 sub _get_filter {
 	my $self = shift;
 	my @ret ;
@@ -49,17 +33,6 @@ sub _get_filter {
 sub _if_tern {
 	my $template = shift;
 	my $re_var		= q{\%(\S+?)\?(.*?)(\:(.*?))?\%};
-	#while ($$template =~ m{$re_var}gsm) {
-	#	my $replace;
-	#	$replace	= qq{<TMPL_IF NAME="$1">$2};
-	#	if (defined $3) {
-	#		$replace	.= qq{<TMPL_ELSE>$4</TMPL_IF>};
-	#	} else {
-	#		$replace	.= q{</TMPL_IF>};
-	#	}
-	#my $source		= quotemeta($&);
-	#$$template 		=~ s{$source}{$replace}sm;
-	#}
 	$$template =~ s{$re_var}{
 		my $replace	= qq{<TMPL_IF NAME="$1">$2};
 		if (defined $3) {
@@ -68,7 +41,7 @@ sub _if_tern {
 			$replace	.= q{</TMPL_IF>};
 		}
 		$replace;
-	}gmse;
+	}gse;
 	return $$template;
 		
 }

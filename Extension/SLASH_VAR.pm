@@ -1,20 +1,17 @@
 package HTML::Template::Extension::SLASH_VAR;
 
-$VERSION 			= "0.21";
+$VERSION 			= "0.22";
 sub Version 		{ $VERSION; }
 
 use Carp;
 use strict;
 
-my $classname;
-my $parentname;
 
-my %fields 	=
-			    (
+
+my %fields_parent = (
 			    	ecp_compatibility_mode => 0,
-			     );
+				);
      
-my @fields_req	= qw//;    
 
 my $re_var = q{
   ((<\s*                           # first <
@@ -26,41 +23,18 @@ my $re_var = q{
   \s*>))
 };
 
-sub new
-{   
-	$classname = shift;
-    my $self = shift;
-    $parentname = ref($self);
-    bless $self,$classname;
-    # aggiungo il filtro
-    $self->_init_local(@_);
-    return $self;
-}							
-
-sub _init_local {
+sub init {
 	my $self = shift;
-	my (%options) = @_;
-	# Assign default options
-	while (my ($key,$value) = each(%fields)) {
-		$self->{$key} = $self->{$key} || $value;
-    }
-    # Assign options
-    while (my ($key,$value) = each(%options)) {
-    	$self->{$key} = $value
-    }
-    # Check required params
-    foreach (@fields_req) {
-		croak "You must declare '$_' in " . ref($self) . "::new"
-				if (!defined $self->{$_});
-	}		
-	$self->push_filter;								
+	while (my ($key,$val) = each(%fields_parent)) {
+		$self->{$key} = $self->{$key} || $val;
+	}
+	&push_filter($self);
 }
+
 
 sub push_filter {
 	my $self = shift;
-	bless $self,$classname;
-	push @{$self->{filter}},@{$self->_get_filter()};
-	bless $self,$parentname;
+	push @{$self->{filter}},@{&_get_filter($self)};
 }
 
 sub _get_filter {
@@ -82,31 +56,7 @@ sub _get_filter {
 # da tenere fintanto che la nostra patch non sia inserita nella 
 # distribuzione standard del modulo
 sub _slash_var {
-        my $template = shift;
-        # handle the </TMPL_VAR> tag
-###        my $re_sh = q{<\s*\/[Tt][Mm][Pp][Ll]_[Vv][Aa][Rr]\s*>};
-###        # String position cursor increment
-###        my $inc   = 15;
-###        while ($$template       =~ m{$re_sh}g) {
-###                my $prematch    = $` . $&;
-###                my $lpm         = length($prematch);
-###                my $cur         = $inc * 2 > $lpm ? $lpm : $inc * 2;
-###                $_              = substr($prematch,-$cur);
-###                my $amp; my $one;
-###                until ( m{$re_var}smx                           and
-###                                $amp = $& and $one=$1           or
-###                                (
-###                                        $cur>=$lpm+$inc         and
-###                                       	die "HTML::Template : </TMPL_VAR> " .
-###                                       		"without <TMPL_VAR>"
-###                                )
-###                        ) {
-###                                $_ = substr($prematch,-($cur += $inc));
-###                }
-###                $amp            = quotemeta($amp);
-###                $$template      =~ s{$amp}{$one}sm;
-###        }
-	####$$template =~s{$re_var}{$1}xsg;
+    my $template = shift;
 	while ($$template =~/(?=$re_var)/sgx) {
         my $two = $2;
         if ($3 !~/(?:$re_var)/sx) {
