@@ -6,11 +6,11 @@
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..13\n"; }
+BEGIN { $| = 1; print "1..15\n"; }
 END {print "not ok " . ++$testid . "\n" unless $loaded;}
 
 use HTML::Template::Extension;
-use HTML::Template::Extension::IF_TERN;
+use HTML::Template::Extension::ObjBase;
 
 
 # Create test obj with support for doing nothing but standart:=)
@@ -167,6 +167,37 @@ if (!m/BAD/) {
 } else {
     exit;
 }
+
+
+# check ObjBase
+
+my $base = new HTML::Template::Extension::ObjBase;
+
+$comp->plugin_add($base);
+
+$_ = $comp->html({'test' => 1},'templates/if_tern.tmpl');
+
+print;
+
+
+if (!m/BAD/) {
+	print "\nok " . ++$testid . "\n";
+} else {
+    exit;
+}
+
+
+# try to remove IF_TERN plug-in
+
+$comp->plugin_remove('IF_TERN');
+$_ = $comp->html({'test' => 1},'templates/if_tern.tmpl');
+print;
+if (m/BAD/) {
+	print "\nok " . ++$testid . "\n";
+} else {
+    exit;
+}
+
 
 $loaded = 1;
 

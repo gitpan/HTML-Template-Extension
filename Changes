@@ -1,5 +1,17 @@
 Revision history for Perl extension HTML::Template::Extension.
 
+0.24 (2003-09-14)
+=================
+- Parameter passed to plugin_add can now be an object. The object must
+  implements an init method, a push_filter method and a static method
+  filter. Take a look to ObjBase.pm as an example. 
+- Add HTML::Template::Extension::ObjBase as a base object to use to
+  implements your templating filter.
+- In previuos version when you add a plugin all present plugins were
+  unloaded and then all were loaded. Now we don't unload and we only
+  load the added one.
+- Plugins_clears didn't work. Now it do.
+
 0.23 (2003-07-31)
 =================
 - Fixed an uninitialized value string in CSTART.

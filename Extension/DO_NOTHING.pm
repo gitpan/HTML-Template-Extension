@@ -1,6 +1,6 @@
 package HTML::Template::Extension::DO_NOTHING;
 
-$VERSION 			= "0.22";
+$VERSION 			= "0.24";
 sub Version 		{ $VERSION; }
 
 use Carp;
@@ -15,12 +15,11 @@ sub init {
     while (my ($key,$val) = each(%fields_parent)) {
         $self->{$key} = $self->{$key} || $val;
     }
-	&push_filter($self);
 }
 
 sub push_filter {
     my $self = shift;
-    push @{$self->{filter}},@{_get_filter($self)};
+    push @{$self->{filter_internal}},@{_get_filter($self)};
 }
 sub _get_filter {
 	my $self = shift;

@@ -14,6 +14,7 @@ Extension/SLASH_VAR.pm
 Extension/SLASH_VAR.pod
 Extension/IF_TERN.pm
 Extension/IF_TERN.pod
+Extension/ObjBase.pm
 MANIFEST
 Makefile.PL
 README

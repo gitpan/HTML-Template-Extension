@@ -1,6 +1,6 @@
 package HTML::Template::Extension;
 
-$VERSION 			= "0.23";
+$VERSION 			= "0.24";
 sub Version 		{ $VERSION; }
 
 use HTML::Template;
@@ -19,11 +19,13 @@ $DEBUG_FILE_PATH	= '/tmp/HTML-Template-Extension.debug.txt';
 
 my %fields 	=
 			    (
-			    	plugins => [],
+			    	plugins => {},
+					plugins_cid => {},
 			    	filename => undef,
 			    	scalarref=>undef,
 			    	arrayref=>undef,
 			    	filehandle=>undef,
+					filter_internal	=> [],
 			     );
      
 my @fields_req	= qw//;
@@ -50,27 +52,29 @@ sub new
 											exists $check{'arrayref'});
 	bless $self,$class;
     $self->_init_local(@_);
-	$self->_loadDynamicModule;
-	push @_,('filter' => $self->{filter});
+#	$self->_loadDynamicModule;
+#	$self->_reloadFilter;
     my $htmpl = $class->HTML::Template::new(@_);
     foreach (keys(%{$htmpl})) {
     	$self->{$_} = $htmpl->{$_};
     }
     bless $self,$class;
-#    $self->{filename}=$self->{options}->{filename};
-#    $self->{scalarref}=$self->{options}->{scalarref};
-#    $self->{arrayref}=$self->{options}->{arrayref};
-#    $self->{filehandle}=$self->{options}->{filehandle};
     return $self;
 }							
 
 sub _init_local {
 	my $self = shift;
 	my (%options) = @_;
+	# add plugins
 	# Assign default options
 	while (my ($key,$value) = each(%fields)) {
 		$self->{$key} = $self->{$key} || $value;
     }
+	# add plugins
+	foreach (@{$options{plugins}}) {
+		$self->plugin_add($_);
+	}
+	delete $options{plugins};
     # Assign options
     while (my ($key,$value) = each(%options)) {
     	$self->{$key} = $value
@@ -81,7 +85,7 @@ sub _init_local {
 				if (!defined $self->{$_});
 	}
 	$self->{DEBUG_FH} = new FileHandle ">>$DEBUG_FILE_PATH" if ($DEBUG);
-	$self->push_filter;										
+	#$self->push_filter;										
 }
 
 sub output {
@@ -201,6 +205,7 @@ sub reloadFile {
 	} elsif (exists($self->{filehandle})) {
 		$self->{options}->{filehandle} = $self->{filehandle};
 	}
+	$self->{filter} = $self->{filter_internal};
 	$self->{options}->{filter}= $self->{filter};
 	$self->_init_template();
 	# local caching params
@@ -227,59 +232,132 @@ sub reloadFile {
 }
 
 
-sub reloadFilter {
+sub _reloadFilter {
 	my $self = shift;
-	undef $self->{filter} ;
-	no strict "refs";
+	undef $self->{filter_internal} ;
+	$self->{plugins_cid} = {};
 	# plugin priority filter
 	{
-		foreach (@{$self->{plugins}}) {
-			my $module = "HTML::Template::Extension::$_";
-        	&{"${module}::push_filter"}($self);
+		foreach (values %{$self->{plugins}}) {
+			$self->_pushModule($_);
 	    }
     }
-    #$self->push_filter;
 }
 
-sub push_filter {
-	my $self = shift;
+#sub _loadDynamicModule {
+#	my $self = shift;
+#	{
+#		foreach (keys %{$self->{plugins}}) {
+#			$self->_initModule($_);
+#	    }
+#	}
+#} 
+
+sub _importModule {
+	my $self		= shift;
+	my $module_name	= shift;
+	
+	$module_name	=~s/::/\//g;
+	require $module_name . ".pm";
 }
 
-sub _loadDynamicModule {
-	my $self = shift;
-	{
-		no strict "vars";
+sub _initModule {
+	my $self		= shift;
+	my $module		= shift;
+	if (ref($module) eq '') {
+		$self->_importModule($module); 
 		no strict "refs";
-		foreach (@{$self->{plugins}}) {
-				my $module = "HTML::Template::Extension::$_";
-	    		my $module_string = $module;
-	    		$module_string =~s/::/\//g;
-	    		require $module_string . ".pm";
-	    		#import $module_string . ".pm";
-				&{$module . "::init"}($self);
-	    }
+		&{$module . "::init"}($self);
+	} else {
+		$module->init($self);
+	}
+}
+
+sub _pushModule {
+	my $self		= shift;
+	my ($module, $module_name) 	= $self->_module_info(shift);
+	if (exists $self->{plugins_cid}->{$module_name}) {
+		# esiste gia' qualcosa di caricato...lo devo scaricare
+		# prima di poter fare qualsiasi cosa
+		my @code_ids = @{$self->{plugins_cid}->{$module_name}};
+		foreach (@code_ids) {
+			$self->_remove_filter_id($_);
+		}
+		delete $self->{plugins_cid}->{$module_name};
+	}
+	# count coderef items
+	my $pre_code_count = $self->{filter_internal} ? scalar(@{$self->{filter_internal}})-1 : -1 ;
+	if (ref($module) eq '') {
+		no strict "refs";
+        &{$module . "::push_filter"}($self);
+	} else {
+		$module->push_filter($self);
+	}
+	# count coderef items after push_filter
+	my $post_code_count = $self->{filter_internal} ? scalar(@{$self->{filter_internal}})-1 : -1;
+	return if ($post_code_count == $pre_code_count);
+	return if ($post_code_count <0);
+	$pre_code_count++;
+	# so this module as add post-pre code items
+	if (exists($self->{plugins_cid}->{$module_name})) {
+		push @{$self->{plugins_cid}->{$module_name}},($pre_code_count .. 
+				$post_code_count)
+	} else {
+		$self->{plugins_cid}->{$module_name} = [$pre_code_count ..
+                $post_code_count];
 	}
 }
 
 
-sub filter { my $s=shift; return @_ ? ($s->{filter}=shift) : $s->{filter} }
+sub filter { my $s=shift; return @_ ? ($s->{filter_internal}=shift) : $s->{filter_internal} }
 
 sub plugin_add { 
-	my $s=shift; 
+	my $s		= shift; 
 	if (@_)  {
-		push @{$s->{plugins}},shift;
-		# reload modules
-		$s->_loadDynamicModule;
-		# reload local filter
-		$s->reloadFilter;
+		my ($module, $module_name) 	= $s->_module_info(shift);
+		# plugin gia caricato
+		return if (exists $s->{plugins}->{$module_name});
+		$s->{plugins}->{$module_name} = $module;
+		# init module
+		$s->_initModule($module);
+		# add filter from added module to me
+		$s->_pushModule($module);
+		# add the array id of added code 
 		$s->{_auto_parse} = 1;
 	};
 	return $s->{plugins}
 }
 
+sub plugin_remove {
+	my $s		= shift;
+	my ($module, $module_name) 	= $s->_module_info(shift);
+	delete $s->{plugins}->{$module_name};
+	if (exists $s->{plugins_cid}->{$module_name}) {
+		my @code_ids = @{$s->{plugins_cid}->{$module_name}};
+		foreach (@code_ids) {
+			$s->_remove_filter_id($_);
+		}
+	}
+	delete $s->{plugins_cid}->{$module_name};
+	$s->{_auto_parse} = 1;
+}
+
+sub _remove_filter_id {
+	my $s		= shift;
+	my $f_id	= shift;
+	my @a		= ();
+	push @a, @{$s->{filter_internal}}[0 .. $f_id-1] if ($f_id>0);
+	push @a, @{$s->{filter_internal}}[$f_id+1 .. $#{$s->{filter_internal}}]
+		if ($f_id< $#{$s->{filter_internal}});
+	$s->{filter_internal} = \@a;
+}
+
 sub plugins_clear { 
 	my $s = shift;
 	undef $s->{plugins};
+	undef $s->{options}->{plugins};
+	undef $s->{filter_internal};
+	$s->{plugins_cid} = {};
 	return $s->{plugins};
 }
 
@@ -293,14 +371,30 @@ sub AUTOLOAD {
 	my $proc = $procs[-1];
 	my $value;
 	no strict "refs";
-	foreach (@{$self->{plugins}}) {
-		my $module = "HTML::Template::Extension::$_";
+	foreach my $module (values %{$self->{plugins}}) {
 		my $ret;
-		$ret=  eval { return &{"${module}::$proc"}($self,@_) };
+		if (ref($module)) {
+			#$ret	= eval { return $module->
+		} else {
+			$ret=  eval { return &{"${module}::$proc"}($self,@_) };
+		}
 		if (!$@) { return  $ret };
 	};
 }
 
+sub _module_info {
+		my $self 	= shift;
+		my $module 	= shift;
+		my $module_name;
+		if (ref($module)) {
+			$module_name = ref($module);
+		} else {
+			$module = "HTML::Template::Extension::$module" 
+				if ($module!~/::/);
+			$module_name = $module;
+		}
+		return ($module,$module_name);
+}
 
 
 

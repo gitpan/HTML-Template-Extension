@@ -176,7 +176,13 @@ relative to an array ref with all plugins module to load;
 
 =item * a "plugin_add" method was implemented
 
-to add a single plugin to those already loaded
+to add a single plugin to those already loaded. If a string is passed as
+plugin_add argument, then HTML::Template::Extention::*** is loaded. If
+a obj reference is passed, it's used as object Extension.
+The object passed must implements an init and a push_filter extension.
+It's better to wrote you own object plugin implements 
+L<HTML::Template::Extension::ObjBase|HTML::Template::Extension::ObjBase>
+as parent object. 
 
 =item * a "plugins_clear" method was added
 
@@ -291,16 +297,13 @@ not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Bo
 
 =head1 AUTHOR
 
-Bruni Emiliano, <info@ebruni.it>
+Bruni Emiliano, <info/at/ebruni_dot_it>
 
 =head1 SEE ALSO
 
- HTML::Template
- HTML::Template::Extension::DO_NOTHING
- HTML::Template::Extension::SLASH_VAR
- HTML::Template::Extension::CSTART
- HTML::Template::Extension::DOC
- HTML::Template::Extension::HEAD_BODY
- HTML::Template::Extension::IF_TERN
+L<HTML::Template>, L<HTML::Template::Extension::DO_NOTHING>,
+L<HTML::Template::Extension::SLASH_VAR>, L<HTML::Template::Extension::CSTART>,
+L<HTML::Template::Extension::DOC>, L<HTML::Template::Extension::HEAD_BODY>,
+L<HTML::Template::Extension::IF_TERN>, L<HTML::Template::Extension::ObjBase>
 
 =cut
