@@ -1,6 +1,6 @@
 package HTML::Template::Extension::HEAD_BODY;
 
-$VERSION 			= "0.18";
+$VERSION 			= "0.20";
 sub Version 		{ $VERSION; }
 
 use Carp;
@@ -63,11 +63,16 @@ sub _get_filter {
 		push @ret, sub {
 					my $tmpl = shift;
 					my $header;
-					$$tmpl =~s{^.+?<body([^>'"]*|".*?"|'.*?')+>}{}msi;
-					bless $self,$classname; 
-					$self->{header} = $&;
-					$self->tokenizer_header;
-					bless $self,$parentname;
+					if ($$tmpl =~s{^.+?<body([^>'"]*|".*?"|'.*?')+>}{}msi) {
+						bless $self,$classname; 
+						$self->{header} = $&;
+						$self->tokenizer_header;
+						bless $self,$parentname;
+					} else {
+						# header doesn't exist
+						undef $self->{header};
+						undef $self->{tokens};
+					}
 					$$tmpl =~ s{</body>.+}{}msi;
 				};
 	}
