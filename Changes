@@ -1,5 +1,17 @@
 Revision history for Perl extension HTML::Template::Extension.
 
+
+0.14 (2002-08-09)
+=================
+- Remove a bug that show previous template parsed if, with the same istance,
+  you print a template via "html" method and then via the "scalarref-output"
+  methods.
+
+0.13 (2002-04-14)
+=================
+- Now Makefile.PL checks if installed HTML::Template module version is major 
+  that 2.1 because previous version don't support filter method.
+
 0.12 (2002-03-25)
 =================
 - Not in according with documentation, if CSTART plugin is loaded and in the

@@ -11,7 +11,7 @@ $packageName = 'HTML::Template::Extension';
 # version is the minimum version required to run
 
 %Requirements = (
-  'HTML::Template',
+  'HTML::Template' => '2.1',
 );
 
 

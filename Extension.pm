@@ -1,6 +1,6 @@
 package HTML::Template::Extension;
 
-$VERSION 			= "0.12";
+$VERSION 			= "0.14";
 sub Version 		{ $VERSION; }
 
 use HTML::Template;
@@ -79,12 +79,8 @@ sub _init_local {
 		croak "You must declare '$_' in " . ref($self) . "::new"
 				if (!defined $self->{$_});
 	}
-	$DEBUG_FH = new FileHandle ">>$DEBUG_FILE_PATH" if ($DEBUG);
+	$self->{DEBUG_FH} = new FileHandle ">>$DEBUG_FILE_PATH" if ($DEBUG);
 	$self->push_filter;										
-}
-
-sub DESTROY {
-	$DEBUG_FH->close if ($DEBUG);
 }
 
 sub output {
@@ -101,6 +97,7 @@ sub output {
 		}
 	}
 	my $output = $self->SUPER::output(%args);
+	print {$self->{'DEBUG_FH'}} Data::Dumper::Dumper($self) if ($DEBUG);
 	return $output;
 }
 
@@ -138,6 +135,7 @@ sub scalarref {
 		# reload local file
 		$s->{_auto_parse} = 1;	
 		delete($s->{filename});
+		delete($s->{options}->{filename});
 		delete($s->{arrayref});
 		delete($s->{filehandle});
 	};
@@ -154,6 +152,7 @@ sub arrayref {
 		# remove other text storage
 		delete($s->{scalarref});
 		delete($s->{filename});
+		delete($s->{options}->{filename});
 		delete($s->{filehandle});
 	};
 	return $s->{arrayref};
@@ -169,6 +168,7 @@ sub filehandle {
 		delete($s->{scalarref});
 		delete($s->{arrayref});
 		delete($s->{filename});
+		delete($s->{options}->{filename});
 	};
 	
 	return $s->{filehandle};
