@@ -26,6 +26,9 @@ be returned by "output" and "html" method
 - HTML::Template::Extension::HEAD_BODY: that don't add tag syntax but some 
 method for easily working with html files
 
+- HTML::Template::Extension::TAG_ATTRIBUTE_NORMALIZER to remove unknown 
+HTML::Template attribute to tags.
+
 - HTML::Template::Extension::DO_NOTHING: that do nothing :-)
 
 Installation
