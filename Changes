@@ -1,5 +1,11 @@
 Revision history for Perl extension HTML::Template::Extension.
 
+0.26 (2007-01-17)
+=================
+- H::T::Extension::HEAD_BODY::header_css now return also <link...> tags 
+	with "rel" attribute equal to "stylesheet" and "type" equal to "text/css".
+	(Syncronized with H::T::Pro::Extension::HEAD_BODY.
+
 0.25 (2005-06-29)
 =================
 - Add TAG_ATTRIBUTE_NORMALIZER plugin to remove unknown HTML::Template

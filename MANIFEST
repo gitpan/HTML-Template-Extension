@@ -32,3 +32,4 @@ templates/simple_vanguard.tmpl
 templates/standard.tmpl
 templates/if_tern.tmpl
 templates/tag_normalizer.tmpl
+META.yml                                 Module meta-data (added by MakeMaker)

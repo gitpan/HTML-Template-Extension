@@ -1,6 +1,6 @@
 package HTML::Template::Extension::HEAD_BODY;
 
-$VERSION 			= "0.24";
+$VERSION 			= "0.26";
 sub Version 		{ $VERSION; }
 
 use Carp;
@@ -33,7 +33,6 @@ sub _get_filter {
 					my $tmpl = shift;
 					my $header;
 					if ($$tmpl =~s{(^.+?<body(?:[^>'"]*|".*?"|'.*?')+>)}{}msi) {
-						###$self->{header} = $&;
 						$self->{header} = $1;
 						&tokenizer_header($self);
 					} else {
@@ -55,7 +54,6 @@ sub autoDeleteHeader {
 		$s->{autoDeleteHeader}=$newvalue;
 		# reload local filter
 		$s->_reloadFilter();
-		#$s->_pushModule('HTML::Template::Extension::HEAD_BODY');
 		$s->{_auto_parse} = 1;
 	};
 	my $ret = $s->{autoDeleteHeader};
@@ -98,11 +96,6 @@ sub header_js {
         # ritorna il codice javascript presente nell'header
         my $self        = shift;
         my $ret;
-        #my $re_init     = q|<\s*script(?:\s*\s+language\s*=\s*['"]?\s*javascript(?:.*?)['"]\s*.*?)?>|;
-        #my $re_end  = q|<\s*\/script\s*>|;
-        #while (s/$re_init.*?$re_end//msxi) {
-        #        $ret .= $&;
-        #}
 				my $js_token = $self->{tokens}->{script};
 				foreach (@{$js_token}) {
 					$ret .= $_->[0] . $_->[1] . $_->[2];
@@ -112,11 +105,20 @@ sub header_js {
 
 sub header_css {
 	# ritorna i css presenti nell'header
+	# compresi i link a css esterni
 	my $self        = shift;
 	my $ret;
   my $style_token = $self->{tokens}->{style};
   foreach (@{$style_token}) {
   	$ret .= $_->[0] . $_->[1] . $_->[2];
+  }
+	my $link_token = $self->{tokens}->{link};
+	foreach (@{$link_token}) {
+		if ($_->[0] =~ /[Rr][Ee][Ll]\s*=\s*"?[Ss][Tt][Yy][Ll][Ee][Ss][Hh][Ee][Ee][Tt]"?/ &&
+			$_->[0] =~ /[Tt][Yy][Pp][Ee]\s*=\s*"?[Tt][Te][Xx][Tt]\/[Cc][Ss][Ss]"?/) 
+		{
+			$ret .= $_->[0] . $_->[1] . $_->[2];
+		}
   }
   return $ret;
 }
